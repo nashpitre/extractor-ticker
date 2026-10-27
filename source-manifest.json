@@ -1,0 +1,66 @@
+{
+  "extractedAt": "2026-10-27T21:46:12.487Z",
+  "note": "Read-only component extraction. Production unchanged. Backend is a local source snapshot, not a verified deployed revision. Feed address moved to environment configuration.",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "24c7dd635bc4acf6f33a7c01490a1ae14bf03a3a5911bcaf6866b045852a9380"
+    },
+    {
+      "path": "README.md",
+      "sha256": "5c1cba49fe0cc0e2d7c510cbd4d588d3db33ce9ba17dfd71b9a4e25eebdf2911"
+    },
+    {
+      "path": "blot/Extractor.html",
+      "sha256": "5d287b584e2a9cdd550974bdae5c528c97f7e96dd463ef03f5a43c9ba9c0d381"
+    },
+    {
+      "path": "blot/connection-widgets.html",
+      "sha256": "089ef0544e7969d392c5dce8b4c981aa2fde52d3c78ced7e95a69a46a5d4b034"
+    },
+    {
+      "path": "examples/ticker.json",
+      "sha256": "379ea2f2f8324c1005213de30aa0bfe5fc10d10e7ccfec44c90946f3feff51db"
+    },
+    {
+      "path": "index.html",
+      "sha256": "4741cf3f92b7eebcaa02217abcdfd37593efc7099936fc7bbdf4de5dbda3e747"
+    },
+    {
+      "path": "package.json",
+      "sha256": "ab389032be757f13ea24a82fe6b5b8a7bac3c92f751dd7d42df693d68cf6fb16"
+    },
+    {
+      "path": "src/shared-ticker.js",
+      "sha256": "2b70c316d6a74cfc8134042f1053f218b369885ebd0d40f434f419fd559ac4d1"
+    },
+    {
+      "path": "src/ticker.css",
+      "sha256": "35c605d8c6c70727e30219858661e917a956ee12224e885f88473b782f97b44d"
+    },
+    {
+      "path": "src/ticker.html",
+      "sha256": "0d18d5377f99c0690b14c18e9e42a8d725f36446cef0c4fc88ca5d885d3603d7"
+    },
+    {
+      "path": "src/ticker.js",
+      "sha256": "da7f94c8577b8df40274828ff90d6e0b1560b23e65646cef03dd4dcbbadcc791"
+    },
+    {
+      "path": "tests/ticker.test.mjs",
+      "sha256": "ae09205a1c85106c3b9e58958861ae8151a73a9387363145b4f60dfec7f6ced5"
+    },
+    {
+      "path": "worker/.dev.vars.example",
+      "sha256": "f82e83cb58ea0434adb4b49f70c50180674e670d20b9c3b4bdf113701084b5b5"
+    },
+    {
+      "path": "worker/worker.js",
+      "sha256": "b25fdb5679fc941155031285ff7b772ff896dbae9b80180e1184dbd26bfcacef"
+    },
+    {
+      "path": "worker/wrangler.jsonc",
+      "sha256": "9df25e490c00ba67147823c392b4c4cc47197d6abcd6f18a91881a42351a2b61"
+    }
+  ]
+}
