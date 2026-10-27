@@ -1,0 +1,888 @@
+<!--
+Title: Extractor
+Link: /extractor
+Page: Yes
+Menu: No
+Description: A live archive of links Nash has pulled from around the web.
+Socialtitle: Extractor — Nash
+Socialdescription: A searchable archive of finds, threads, and connections pulled from around the web.
+Thumbnail: /_media/assets/extractor-share-card.png
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    html:has(.extractor-page) { color-scheme: light dark; }
+    body:has(.extractor-page.is-loading) { overflow: hidden !important; }
+    .post:has(.extractor-page) > .entry-header { display: none !important; }
+    .extractor-page {
+      --x-bg: #f4f5f2;
+      --x-panel: #ffffff;
+      --x-panel-2: #edf2f1;
+      --x-deep: #e7ecea;
+      --x-ink: #171c1e;
+      --x-muted: rgba(23,28,30,.54);
+      --x-rule: rgba(23,28,30,.14);
+      --x-strong-rule: rgba(23,28,30,.48);
+      --x-cyan: #67c3cf;
+      --x-red: #ef514b;
+      width: min(calc(100% - 24px), 960px);
+      margin: 0 auto;
+      overflow: hidden;
+      color: var(--x-ink);
+      background: var(--x-bg);
+      border-bottom: 1px solid var(--x-rule);
+      font-family: "Electrolize", ui-monospace, SFMono-Regular, Menlo, monospace;
+      line-height: 1.35;
+    }
+    .extractor-page * { box-sizing: border-box; }
+    .extractor-page a { color: inherit; }
+    .extractor-loader { position: fixed; z-index: 999999; inset: 0; display: grid; place-items: center; background: var(--x-bg); }
+    .extractor-page:not(.is-loading) .extractor-loader { display: none; }
+    .extractor-loader-bar { position: relative; width: min(72vw,560px); height: 12px; overflow: hidden; background: var(--x-rule); border: 1px solid rgba(103,195,207,.32); }
+    .extractor-loader-bar::after { position: absolute; inset: 0; content: ""; background: linear-gradient(90deg,transparent 0,var(--x-cyan) 48%,transparent 100%); transform: translateX(-100%); animation: extractor-loading 1.05s linear infinite; }
+    @keyframes extractor-loading { to { transform: translateX(100%); } }
+    .extractor-trim { height: 7px; background: linear-gradient(90deg,var(--x-red) 0 18%,var(--x-cyan) 18% 100%); }
+    .extractor-hero { position: relative; overflow: hidden; padding: 26px 18px 22px; background: linear-gradient(135deg,rgba(103,195,207,.08),transparent 54%),var(--x-panel); }
+    .extractor-hero::before { position: absolute; inset: 0; content: ""; opacity: .12; background-image: linear-gradient(rgba(103,195,207,.28) 1px,transparent 1px),linear-gradient(90deg,rgba(103,195,207,.28) 1px,transparent 1px); background-size: 34px 34px; mask-image: linear-gradient(90deg,transparent 10%,#000 58%,#000); }
+    .extractor-hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0,1fr) 150px; gap: 24px; align-items: center; }
+    .extractor-hero h1 { margin: 0; color: var(--x-ink); font-size: clamp(2rem,6vw,3.8rem); font-weight: 800; letter-spacing: -.04em; line-height: .9; text-transform: uppercase; }
+    .extractor-intro { max-width: 38rem; margin: 20px 0 0; color: var(--x-muted); font-size: clamp(.76rem,1.8vw,.92rem); letter-spacing: .025em; line-height: 1.6; }
+    .extractor-hero-aside { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+    .extractor-route-meta { display: flex; justify-content: flex-end; margin: 0; color: var(--x-cyan); font-size: .52rem; font-weight: 700; letter-spacing: .1em; text-align: right; text-transform: uppercase; white-space: nowrap; }
+    .extractor-globe { width: 150px; height: 150px; color: var(--x-cyan); opacity: .8; }
+    .extractor-globe circle,.extractor-globe ellipse { fill: none; stroke: currentColor; stroke-width: 1.2; }
+    .extractor-globe .route { stroke: var(--x-ink); stroke-dasharray: 4 5; stroke-width: 1.5; }
+    .extractor-globe .point { fill: var(--x-red); stroke: var(--x-panel); stroke-width: 3; }
+    .extractor-briefing { margin: 14px; overflow: hidden; background: var(--x-panel-2); border: 2px solid var(--x-strong-rule); box-shadow: 0 3px 0 rgba(23,28,30,.08); }
+    .extractor-briefing[hidden] { display: none; }
+    .extractor-briefing-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 13px 14px 12px; color: #fff; background: #479db1; border-bottom: 2px solid #479db1; }
+    .extractor-briefing-head h2 { margin: 0; color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    .extractor-briefing-head p { margin: 0; color: rgba(255,255,255,.76); font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .76rem; line-height: 1.35; text-align: right; }
+    .extractor-terminal { background: var(--x-panel); border-bottom: 1px solid var(--x-rule); }
+    .extractor-terminal[hidden] { display: none; }
+    .extractor-terminal-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: 11px 14px; border-bottom: 1px solid var(--x-rule); }
+    #extractor-briefing .extractor-terminal-head h3 { margin: 0; color: #479db1 !important; -webkit-text-fill-color: #479db1 !important; font-size: .58rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    #extractor-briefing .extractor-terminal-head span { color: rgba(23,28,30,.54) !important; -webkit-text-fill-color: rgba(23,28,30,.54) !important; font-size: .48rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .extractor-terminal-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin: 0; padding: 0; list-style: none; }
+    .extractor-terminal-list li { min-width: 0; border-right: 1px solid var(--x-rule); border-bottom: 1px solid var(--x-rule); }
+    .extractor-terminal-list li:nth-child(3n) { border-right: 0; }
+    #extractor-briefing .extractor-terminal-link { display: block; min-height: 98px; padding: 11px 13px 10px; color: #171c1e !important; -webkit-text-fill-color: #171c1e !important; background: var(--x-panel) !important; text-decoration: none !important; }
+    #extractor-briefing .extractor-terminal-topic { display: block; overflow: hidden; color: #479db1 !important; -webkit-text-fill-color: #479db1 !important; font-size: .48rem; font-weight: 800; letter-spacing: .09em; line-height: 1.25; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+    #extractor-briefing .extractor-terminal-title { display: -webkit-box; overflow: hidden; margin: 7px 0; color: #171c1e !important; -webkit-text-fill-color: #171c1e !important; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .72rem; font-weight: 650; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    #extractor-briefing .extractor-terminal-meta { display: block; overflow: hidden; color: rgba(23,28,30,.54) !important; -webkit-text-fill-color: rgba(23,28,30,.54) !important; font-size: .45rem; font-weight: 750; letter-spacing: .08em; line-height: 1.2; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+    #extractor-briefing .extractor-terminal-link:hover,#extractor-briefing .extractor-terminal-link:focus-visible { background: var(--x-panel-2) !important; outline: 0; }
+    .extractor-briefing-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); margin: 0; padding: 0; list-style: none; }
+    .extractor-briefing-list li + li { border-left: 1px solid var(--x-rule); }
+    .extractor-briefing-list li:first-child { grid-column: span 2; border-bottom: 1px solid var(--x-rule); }
+    .extractor-briefing-link { display: flex; flex-direction: column; align-items: flex-start; min-height: 190px; padding: 15px 14px; color: #171c1e !important; -webkit-text-fill-color: #171c1e !important; background: var(--x-panel-2) !important; text-decoration: none !important; transition: background .15s ease; }
+    .extractor-briefing-list li:first-child .extractor-briefing-link { min-height: 230px; padding: 20px 18px; background: var(--x-panel) !important; }
+    .extractor-briefing-link:hover,.extractor-briefing-link:focus-visible { background: var(--x-panel) !important; outline: 0; }
+    #extractor-briefing .extractor-briefing-kicker { color: #479db1 !important; -webkit-text-fill-color: #479db1 !important; font-size: .48rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    #extractor-briefing .extractor-briefing-title { display: block; margin: 9px 0 11px; color: #171c1e !important; -webkit-text-fill-color: #171c1e !important; font-size: clamp(.76rem,1.7vw,.95rem); font-weight: 800; letter-spacing: .035em; line-height: 1.25; text-transform: uppercase; }
+    #extractor-briefing .extractor-briefing-list li:first-child .extractor-briefing-title { font-size: clamp(1.25rem,3vw,2.2rem); letter-spacing: .045em; }
+    #extractor-briefing .extractor-briefing-latest { display: -webkit-box; overflow: hidden; color: #171c1e !important; -webkit-text-fill-color: #171c1e !important; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .78rem; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+    #extractor-briefing .extractor-briefing-sources { margin-top: auto; padding-top: 12px; color: rgba(23,28,30,.58) !important; -webkit-text-fill-color: rgba(23,28,30,.58) !important; font-size: .48rem; font-weight: 700; letter-spacing: .08em; line-height: 1.35; text-transform: uppercase; }
+    .extractor-discoveries { border-top: 1px solid var(--x-rule); background: var(--x-panel); }
+    .extractor-discoveries[hidden] { display: none; }
+    .extractor-discoveries h3 { margin: 0; padding: 12px 14px; color: #479db1; font-size: .58rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .extractor-discovery-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--x-rule); }
+    .extractor-discovery-list li + li { border-left: 1px solid var(--x-rule); }
+    #extractor-briefing .extractor-discovery-link { display: block; min-height: 90px; padding: 12px 14px; color: #171c1e !important; -webkit-text-fill-color: #171c1e !important; background: var(--x-panel) !important; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .74rem; line-height: 1.35; text-decoration: none !important; }
+    .extractor-discovery-link:hover,.extractor-discovery-link:focus-visible { background: var(--x-panel-2) !important; outline: 0; }
+    .extractor-developments { border-top: 1px solid var(--x-rule); background: var(--x-panel); }
+    .extractor-developments[hidden] { display: none; }
+    .extractor-developments h3 { margin: 0; padding: 12px 14px; color: #479db1; font-size: .58rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .extractor-development-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--x-rule); }
+    .extractor-development-list li { min-width: 0; border-right: 1px solid var(--x-rule); border-bottom: 1px solid var(--x-rule); }
+    .extractor-development-list li:nth-child(3n) { border-right: 0; }
+    #extractor-briefing .extractor-development-link { display: block; min-height: 120px; padding: 13px 14px; color: #171c1e !important; -webkit-text-fill-color: #171c1e !important; background: var(--x-panel) !important; text-decoration: none !important; }
+    #extractor-briefing .extractor-development-title { display: block; margin-bottom: 8px; color: #171c1e !important; -webkit-text-fill-color: #171c1e !important; font-size: .66rem; font-weight: 800; letter-spacing: .08em; line-height: 1.25; text-transform: uppercase; }
+    #extractor-briefing .extractor-development-latest { display: -webkit-box; overflow: hidden; color: #171c1e !important; -webkit-text-fill-color: #171c1e !important; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .72rem; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+    #extractor-briefing .extractor-development-link:hover,#extractor-briefing .extractor-development-link:focus-visible { background: var(--x-panel-2) !important; outline: 0; }
+    .extractor-tools { display: grid; grid-template-columns:minmax(0,1fr) auto; gap: 8px; margin: 14px; padding: 12px; background: var(--x-panel); border: 1px solid var(--x-rule); box-shadow: inset 0 3px var(--x-cyan); }
+    .extractor-search { min-width: 0; width: 100%; min-height: 42px; padding: 9px 12px 9px 30px !important; color: var(--x-ink) !important; background: var(--x-panel) !important; border: 1px solid var(--x-rule) !important; border-radius: 0 !important; box-shadow: inset 3px 0 var(--x-cyan); font: inherit; font-size: 16px; outline: 0; -webkit-appearance: none; }
+    .extractor-search::placeholder { color: var(--x-muted); }
+    .extractor-search:focus { border-color: var(--x-cyan) !important; box-shadow: inset 3px 0 var(--x-cyan); }
+    .extractor-submit { min-width: 92px; min-height: 42px; padding: 0 14px; color: var(--x-bg); background: var(--x-cyan); border: 1px solid var(--x-cyan); border-radius: 0; font: inherit; font-size: .58rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; cursor: pointer; }
+    .extractor-submit:hover,.extractor-submit:focus-visible { color: var(--x-ink); background: transparent; outline: 0; }
+    .extractor-results { margin: 0; padding: 0; }
+    .extractor-region { margin: 0; padding: 0; }
+    .extractor-region + .extractor-region { border-top: 7px solid var(--x-bg); }
+    .extractor-region--recent { margin-top: 14px; overflow: hidden; background: var(--x-panel); border: 1px solid var(--x-strong-rule); box-shadow: inset 3px 0 var(--x-cyan); }
+    .extractor-region-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 58px; padding: 14px 16px; background: var(--x-deep); border-bottom: 1px solid var(--x-rule); }
+    .extractor-region-head h2 { display: flex; align-items: center; gap: 9px; margin: 0; color: var(--x-ink); font-size: .78rem; font-weight: 800; letter-spacing: .13em; line-height: 1.2; text-transform: uppercase; }
+    .extractor-region-head p { margin: 0; color: var(--x-muted); font-size: .48rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .extractor-recent-list { margin: 0; padding: 0; list-style: none; }
+    .extractor-recent-item { border-bottom: 1px solid var(--x-rule); }
+    .extractor-recent-item:last-child { border-bottom: 0; }
+    #extractor-results .extractor-recent-link { display: grid; grid-template-columns: minmax(0,1fr) auto; column-gap: 16px; padding: 13px 16px; color: var(--x-ink) !important; background: var(--x-panel) !important; -webkit-text-fill-color: var(--x-ink) !important; text-decoration: none !important; }
+    #extractor-results .extractor-recent-link:hover,#extractor-results .extractor-recent-link:focus-visible { background: var(--x-panel-2) !important; outline: 0; }
+    .extractor-recent-topic { grid-column: 1; overflow: hidden; color: var(--x-cyan); font-size: .49rem; font-weight: 800; letter-spacing: .1em; line-height: 1.25; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+    .extractor-recent-title { grid-column: 1 / -1; display: block; margin: 5px 0; color: var(--x-ink); font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .86rem; font-weight: 600; line-height: 1.35; }
+    .extractor-recent-meta { grid-column: 2; grid-row: 1; align-self: start; color: var(--x-muted); font-size: .47rem; font-weight: 700; letter-spacing: .08em; line-height: 1.25; text-align: right; text-transform: uppercase; white-space: nowrap; }
+    .extractor-region--trending > .extractor-region-head { cursor: pointer; }
+    .extractor-region--trending > .extractor-region-head h2::after { color: var(--x-muted); content: "+"; font-size: 1rem; font-weight: 400; letter-spacing: 0; }
+    .extractor-region--trending > .extractor-region-head[aria-expanded="true"] h2::after { content: "−"; }
+    .extractor-connections-body[hidden] { display: none; }
+    .extractor-region--trending { margin-top: 16px; padding-bottom: 12px; background: var(--x-deep); }
+    .extractor-region--trending.is-collapsed { padding-bottom: 0; }
+    .extractor-region--trending .extractor-topic { margin: 40px 12px 0; overflow: hidden; border: 2px solid var(--x-strong-rule); background: var(--x-panel-2); box-shadow: 0 3px 0 rgba(23,28,30,.08); }
+    .extractor-region--trending .extractor-region-head + .extractor-topic { margin-top: 16px; }
+    .extractor-connection-era { margin: 22px 12px 0; overflow: hidden; border: 1px solid var(--x-strong-rule); background: var(--x-panel); }
+    .extractor-connection-era-head { display: flex; align-items: center; justify-content: space-between; min-height: 38px; padding: 9px 13px; color: var(--x-muted); background: var(--x-panel); border-bottom: 1px solid var(--x-rule); font-size: .54rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .extractor-connection-era .extractor-topic { margin: 0 !important; border: 0; border-bottom: 1px solid var(--x-rule); box-shadow: none; }
+    .extractor-connection-era .extractor-topic:last-child { border-bottom: 0; }
+    .extractor-region--trending .extractor-topic-head { min-height: 52px; padding: 12px 14px; color: #fff; background: #479db1; border-bottom: 2px solid #479db1; box-shadow: none; }
+    .extractor-region--trending .extractor-topic-head h3 { margin: 0; color: #fff; font-size: .7rem; font-weight: 800; letter-spacing: .11em; line-height: 1.25; text-transform: uppercase; }
+    .extractor-region--trending .extractor-topic-head .extractor-thread-updated { color: #d2d5d6; font-size: .48rem; font-weight: 400; letter-spacing: .09em; white-space: nowrap; text-transform: uppercase; opacity: 1; }
+    .extractor-region--trending .extractor-topic-list { position: relative; }
+    .extractor-region--trending .extractor-item { position: relative; grid-template-columns: .65rem minmax(0,1fr) auto; gap: 12px; min-height: 56px; padding: 10px 14px; background: var(--x-panel-2); }
+    .extractor-region--trending .extractor-item::before { position: relative; z-index: 2; width: 9px; height: 9px; background: #479db1; border: 0; box-shadow: none; }
+    .extractor-region--trending .extractor-item::after { position: absolute; z-index: 1; top: 0; bottom: 0; left: 18px; width: 1px; content: ""; background: rgba(71,157,177,.4); }
+    .extractor-region--trending .extractor-item:first-child { padding-top: 16px; }
+    .extractor-region--trending .extractor-item:first-child::after { top: 50%; }
+    .extractor-region--trending .extractor-item:last-child::after { bottom: 50%; }
+    .extractor-region--trending .extractor-topic-list.is-collapsed-list .extractor-item:nth-child(n+6) { display: none; }
+    .extractor-region--trending .extractor-topic-list.is-collapsed-list .extractor-item:nth-child(5)::after { bottom: 50%; }
+    .extractor-region--trending .extractor-title { font-size: clamp(.76rem,1.8vw,.88rem); line-height: 1.3; }
+    .extractor-package { margin: 16px 12px 0; overflow: hidden; border: 2px solid var(--x-strong-rule); background: var(--x-panel-2); box-shadow: 0 3px 0 rgba(23,28,30,.08); }
+    .extractor-package-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 54px; padding: 12px 14px; color: #fff; background: #479db1; cursor: pointer; }
+    .extractor-package-head h3 { margin: 0; color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: .12em; line-height: 1.2; text-transform: uppercase; }
+    .extractor-package-head span { color: rgba(255,255,255,.76); font-size: .5rem; font-weight: 700; letter-spacing: .09em; white-space: nowrap; text-transform: uppercase; }
+    .extractor-package-body[hidden] { display: none; }
+    .extractor-package .extractor-topic { margin: 0 !important; border: 0; border-top: 1px solid var(--x-rule); box-shadow: none; }
+    .extractor-package .extractor-topic-head { min-height: 44px; padding: 10px 14px; color: var(--x-ink); background: var(--x-panel); border-bottom: 1px solid var(--x-rule); }
+    .extractor-package .extractor-topic-head h3 { color: var(--x-cyan); font-size: .6rem; }
+    .extractor-package .extractor-topic-head .extractor-thread-updated { color: var(--x-muted); }
+    .extractor-package .extractor-item { background: var(--x-panel-2); }
+    .extractor-more { display: block; width: 100%; min-height: 42px; padding: 10px 16px; color: var(--x-muted); background: rgba(127,127,127,.055); border: 0; border-top: 1px solid var(--x-rule); border-radius: 0; font: inherit; font-size: .56rem; font-weight: 700; letter-spacing: .11em; text-align: left; text-transform: uppercase; cursor: pointer; }
+    .extractor-more:hover,.extractor-more:focus-visible { color: var(--x-ink); background: rgba(127,127,127,.11); outline: 0; }
+    .extractor-more[hidden],.extractor-item[hidden] { display: none !important; }
+    .extractor-pagination { display:flex; justify-content:space-between; border-top:1px solid var(--x-rule); }
+    .extractor-pagination .extractor-more { width:auto; border:0; background:transparent; }
+    .extractor-pagination .extractor-more:last-child { margin-left:auto; text-align:right; }
+    .extractor-region--archive { margin: 14px 12px; padding: 0; overflow: hidden; background: var(--x-panel); border: 1px solid var(--x-strong-rule); box-shadow: inset 3px 0 var(--x-cyan); }
+    .extractor-region--trending + .extractor-region--archive { border-top: 1px solid var(--x-strong-rule); }
+    .extractor-today-outline { margin: 16px 12px 0; overflow: hidden; background: var(--x-panel); border: 1px solid var(--x-strong-rule); box-shadow: inset 3px 0 var(--x-cyan); }
+    .extractor-today-outline h2 { margin: 0; padding: 15px 16px; color: var(--x-cyan); background: var(--x-deep); border-bottom: 1px solid var(--x-rule); font-size: .76rem; font-weight: 800; letter-spacing: .14em; line-height: 1.2; text-transform: uppercase; }
+    .extractor-outline-list,.extractor-outline-posts,.extractor-outline-related { margin: 0; padding: 0; list-style: none; }
+    .extractor-outline-list { position: relative; }
+    .extractor-outline-connection { position: relative; padding: 0 16px 0 43px; border-bottom: 1px solid var(--x-rule); }
+    .extractor-outline-connection:last-child { border-bottom: 0; }
+    .extractor-outline-connection::before { position: absolute; z-index: 2; top: 21px; left: 17px; width: 9px; height: 9px; content: ""; background: var(--x-cyan); border-radius: 50%; box-shadow: 0 0 0 2px var(--x-panel); }
+    .extractor-outline-connection::after { position: absolute; z-index: 1; top: 0; bottom: 0; left: 21px; width: 1px; content: ""; background: rgba(71,157,177,.44); }
+    .extractor-outline-connection:first-child::after { top: 25px; }
+    .extractor-outline-connection:last-child::after { bottom: auto; height: 25px; }
+    #extractor-results .extractor-outline-connection-toggle,#extractor-results .extractor-outline-connection-toggle:hover,#extractor-results .extractor-outline-connection-toggle:focus-visible,#extractor-results .extractor-outline-connection-toggle:active { position: relative; z-index: 2; display: block; width: 100%; min-height: 51px; margin: 0; padding: 13px 0; color: var(--x-cyan) !important; background: transparent !important; background-color: transparent !important; background-image: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent; filter: none !important; font: inherit; font-size: .66rem; font-weight: 800; letter-spacing: .11em; line-height: 1.25; text-align: left; text-transform: uppercase; cursor: pointer; outline: 0; }
+    .extractor-outline-connection-toggle::after { float: right; margin-left: 12px; color: var(--x-muted); content: "+"; font-size: .9rem; font-weight: 400; line-height: .85; }
+    .extractor-outline-connection-toggle[aria-expanded="true"]::after { content: "−"; }
+    .extractor-outline-posts { position: relative; margin: 0 0 12px 4px; padding-left: 19px; border-left: 0; }
+    .extractor-outline-post { position: relative; padding: 6px 0; }
+    .extractor-outline-post::before { position: absolute; top: 14px; left: -24px; width: 8px; height: 8px; content: ""; background: var(--x-cyan); border-radius: 50%; box-shadow: 0 0 0 2px var(--x-panel); }
+    .extractor-outline-post > a { display: block; color: var(--x-ink); font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .86rem; font-weight: 400; line-height: 1.34; text-decoration: none; text-transform: none; }
+    .extractor-outline-related { margin: 7px 0 0 6px; padding-left: 14px; border-left: 0; }
+    .extractor-outline-related li { position: relative; padding: 4px 0; }
+    .extractor-outline-related li::before { position: absolute; top: .73em; left: -17px; width: 5px; height: 5px; content: ""; background: var(--x-muted); border-radius: 50%; }
+    .extractor-outline-related a { color: var(--x-muted); font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .76rem; line-height: 1.3; text-decoration: none; text-transform: none; }
+    .extractor-today-outline a:hover,.extractor-today-outline a:focus-visible { text-decoration: underline; text-decoration-color: var(--x-rule); text-underline-offset: .17em; outline: 0; }
+    .extractor-region--archive .extractor-region-head { margin: 0; min-height: 52px; background: var(--x-panel); border-bottom: 1px solid var(--x-strong-rule); box-shadow: inset 3px 0 var(--x-cyan); }
+    .extractor-region--archive .extractor-topic { overflow: hidden; border: 0; background: var(--x-panel); box-shadow: none; }
+    .extractor-region--archive .extractor-item { grid-template-columns: .55rem minmax(0,1fr) auto; gap: 12px; min-height: 64px; padding: 12px 14px; background: var(--x-panel); }
+    .extractor-region--archive .extractor-item:last-child { border-bottom: 0; }
+    .extractor-region--archive .extractor-item::before { width: 5px; height: 5px; opacity: .76; box-shadow: none; }
+    #extractor-results .extractor-region--archive .extractor-title { display: -webkit-box !important; max-height: 2.7em; overflow: hidden; font-size: clamp(.8rem,1.8vw,.9rem) !important; line-height: 1.35 !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .extractor-topic { margin: 0; padding: 0; background: var(--x-panel); border-bottom: 1px solid var(--x-rule); }
+    .extractor-topic-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; padding: 11px 16px; background: var(--x-deep); border-bottom: 1px solid var(--x-rule); }
+    .extractor-topic-head h3 { margin: 0; color: var(--x-cyan); font-size: .68rem; font-weight: 800; letter-spacing: .12em; line-height: 1.2; text-transform: uppercase; }
+    .extractor-topic-head span { color: var(--x-muted); font-size: .5rem; font-weight: 700; letter-spacing: .1em; white-space: nowrap; text-transform: uppercase; }
+    #extractor-results .extractor-master-brief { display: block; width: 100%; padding: 14px 16px; color: var(--x-ink) !important; -webkit-text-fill-color: var(--x-ink) !important; background: var(--x-panel-2) !important; border: 0 !important; border-bottom: 1px solid var(--x-rule) !important; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .88rem; font-weight: 500; line-height: 1.4; text-align: left; cursor: pointer; }
+    #extractor-results .extractor-master-brief::after { display: block; margin-top: 9px; color: var(--x-cyan); content: "OPEN SOURCE REPORTS"; font-family: inherit; font-size: .48rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    .extractor-topic-list { margin: 0; padding: 0; list-style: none; }
+    .extractor-item { display: grid; grid-template-columns: .75rem minmax(0,1fr) auto; gap: 16px; align-items: center; min-height: 88px; padding: 18px 16px; border-bottom: 1px solid var(--x-rule); background: var(--x-panel); transition: background .15s ease; }
+    .extractor-item:hover { background: var(--x-panel-2); }
+    .extractor-item::before { width: 6px; height: 6px; content: ""; background: var(--x-cyan); border-radius: 50%; box-shadow: 0 0 0 2px rgba(103,195,207,.12); }
+    .extractor-copy { min-width: 0; }
+    #extractor-results .extractor-title,#extractor-results .extractor-title:link,#extractor-results .extractor-title:visited { display: block; color: var(--x-ink) !important; background: none !important; background-color: transparent !important; background-image: none !important; -webkit-text-fill-color: var(--x-ink) !important; -webkit-tap-highlight-color: transparent; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: clamp(.88rem,2.2vw,1.02rem); font-weight: 400; letter-spacing: 0; line-height: 1.38; text-decoration: none; text-transform: none !important; touch-action: manipulation; }
+    #extractor-results .extractor-title:hover,#extractor-results .extractor-title:focus-visible { color: var(--x-ink) !important; background: none !important; -webkit-text-fill-color: var(--x-ink) !important; text-decoration: underline; text-decoration-color: var(--x-rule); text-underline-offset: .18em; }
+    #extractor-results .extractor-title:active { color: var(--x-ink) !important; background: none !important; background-color: transparent !important; background-image: none !important; -webkit-text-fill-color: var(--x-ink) !important; filter: none !important; opacity: 1 !important; text-decoration: none; }
+    #extractor-results .extractor-echo-toggle,#extractor-results .extractor-echo-toggle:active { display: inline-block !important; margin: 7px 0 0 !important; padding: 0 !important; color: var(--x-muted) !important; background: transparent !important; background-color: transparent !important; background-image: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; -webkit-appearance: none; appearance: none; font: inherit; font-size: .52rem; font-weight: 700; letter-spacing: .09em; line-height: 1.3; text-transform: uppercase; cursor: pointer; }
+    #extractor-results .extractor-echo-toggle:hover,#extractor-results .extractor-echo-toggle:focus-visible { color: var(--x-ink) !important; background: transparent !important; box-shadow: none !important; outline: 0; }
+    .extractor-echo-list { margin: 9px 0 2px; padding: 0 0 0 12px; background: transparent !important; border-left: 1px solid var(--x-cyan); list-style: none; }
+    .extractor-echo-list[hidden] { display: none; }
+    .extractor-echo-list li { margin: 0; padding: 7px 0; border-top: 1px solid var(--x-rule); }
+    .extractor-echo-list li:first-child { border-top: 0; }
+    #extractor-results .extractor-echo-link,#extractor-results .extractor-echo-link:link,#extractor-results .extractor-echo-link:visited { display: block !important; color: var(--x-ink) !important; background: transparent !important; background-color: transparent !important; -webkit-text-fill-color: var(--x-ink) !important; filter: none !important; opacity: 1 !important; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .76rem; font-weight: 400; line-height: 1.35; text-decoration: none; }
+    #extractor-results .extractor-echo-link:hover,#extractor-results .extractor-echo-link:focus-visible { color: var(--x-ink) !important; text-decoration: underline; text-underline-offset: .16em; }
+    .extractor-parent-shelf { overflow: hidden; border-top: 1px solid var(--x-rule); background: var(--x-panel-2); }
+    #extractor-results .extractor-parent-toggle { display: block; width: 100%; min-height: 42px; margin: 0; padding: 10px 16px; color: var(--x-muted) !important; background: transparent !important; border: 0 !important; font: inherit; font-size: .54rem; font-weight: 700; letter-spacing: .09em; text-align: left; text-transform: uppercase; cursor: pointer; }
+    #extractor-results .extractor-parent-toggle:hover,#extractor-results .extractor-parent-toggle:focus-visible { color: var(--x-ink) !important; background: rgba(127,127,127,.07) !important; outline: 0; }
+    .extractor-parent-list { position: relative; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--x-rule); }
+    .extractor-parent-list[hidden] { display: none; }
+    .extractor-parent-list li { position: relative; min-height: 54px; padding: 10px 14px 10px 40px; border-bottom: 1px solid var(--x-rule); }
+    .extractor-parent-list li:last-child { border-bottom: 0; }
+    .extractor-parent-list li::before { position: absolute; top: 50%; left: 16px; width: 7px; height: 7px; content: ""; background: #479db1; border-radius: 50%; box-shadow: 0 0 0 2px rgba(71,157,177,.12); transform: translateY(-50%); }
+    #extractor-results .extractor-parent-link,#extractor-results .extractor-parent-link:link,#extractor-results .extractor-parent-link:visited,#extractor-results .extractor-parent-link:active { display: block !important; color: var(--x-ink) !important; background: transparent !important; background-color: transparent !important; background-image: none !important; -webkit-text-fill-color: var(--x-ink) !important; filter: none !important; opacity: 1 !important; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: .8rem; font-weight: 400; line-height: 1.35; text-decoration: none !important; text-transform: none !important; }
+    #extractor-results .extractor-parent-link:hover,#extractor-results .extractor-parent-link:focus-visible { color: var(--x-ink) !important; text-decoration: underline !important; text-decoration-color: var(--x-rule) !important; text-underline-offset: .16em; outline: 0; }
+    .extractor-date { color: var(--x-muted); font-size: .52rem; letter-spacing: .08em; white-space: nowrap; text-transform: uppercase; }
+    .extractor-empty { display: none; padding: 70px 20px; color: var(--x-muted); text-align: center; font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; }
+    .extractor-empty.is-visible { display: block; }
+    .extractor-foot { display: flex; justify-content: space-between; gap: 20px; padding: 17px 18px; color: var(--x-muted); background: var(--x-deep); font-size: .52rem; letter-spacing: .09em; text-transform: uppercase; }
+    .extractor-foot a { color: var(--x-cyan); text-decoration: none; }
+    @media(prefers-color-scheme:dark) {
+      .extractor-page {
+        --x-bg: #10171b;
+        --x-panel: #151d22;
+        --x-panel-2: #192329;
+        --x-deep: #0b1114;
+        --x-ink: #edf3f4;
+        --x-muted: rgba(237,243,244,.52);
+        --x-rule: rgba(237,243,244,.12);
+        --x-strong-rule: rgba(237,243,244,.4);
+      }
+      #extractor-briefing .extractor-briefing-link,#extractor-briefing .extractor-briefing-title { color: #edf3f4 !important; -webkit-text-fill-color: #edf3f4 !important; }
+      #extractor-briefing .extractor-briefing-latest,#extractor-briefing .extractor-discovery-link { color: #edf3f4 !important; -webkit-text-fill-color: #edf3f4 !important; }
+      #extractor-briefing .extractor-briefing-sources { color: rgba(237,243,244,.62) !important; -webkit-text-fill-color: rgba(237,243,244,.62) !important; }
+      #extractor-briefing .extractor-development-link,#extractor-briefing .extractor-development-title,#extractor-briefing .extractor-development-latest { color: #edf3f4 !important; -webkit-text-fill-color: #edf3f4 !important; }
+      #extractor-briefing .extractor-terminal-link,#extractor-briefing .extractor-terminal-title { color: #edf3f4 !important; -webkit-text-fill-color: #edf3f4 !important; }
+      #extractor-briefing .extractor-terminal-head span,#extractor-briefing .extractor-terminal-meta { color: rgba(237,243,244,.58) !important; -webkit-text-fill-color: rgba(237,243,244,.58) !important; }
+    }
+    @media(max-width:639px) {
+      .extractor-page { width: 100vw; max-width: none; margin-left: calc(50% - 50vw); }
+      .extractor-hero { display: block; padding: 22px 13px 64px; }
+      .extractor-hero-grid { position: static; display: block; }
+      .extractor-hero h1 { width: calc(100% - 80px); font-size: clamp(2.25rem,11vw,2.85rem); white-space: normal; }
+      .extractor-hero h1 span { display: block; }
+      .extractor-intro { margin-top: 46px; font-size: .78rem; line-height: 1.55; }
+      .extractor-hero-aside { position: static; display: block; margin: 0; }
+      .extractor-route-meta { position: absolute; z-index: 2; right: 13px; bottom: 17px; font-size: .46rem; letter-spacing: .075em; }
+      .extractor-globe { position: absolute; top: 14px; right: 13px; width: 74px; height: 74px; }
+      .extractor-briefing { margin: 12px 10px; }
+      .extractor-briefing-head { display: block; padding: 12px; }
+      .extractor-briefing-head p { margin-top: 5px; font-size: .72rem; text-align: left; }
+      .extractor-terminal-head { display: block; padding: 11px 12px; }
+      #extractor-briefing .extractor-terminal-head span { display: block; margin-top: 4px; }
+      .extractor-terminal-list { display: block; }
+      .extractor-terminal-list li { border-right: 0; }
+      #extractor-briefing .extractor-terminal-link { display: grid; grid-template-columns: minmax(0,1fr) auto; column-gap: 10px; min-height: 0; padding: 10px 12px; }
+      #extractor-briefing .extractor-terminal-topic { grid-column: 1; }
+      #extractor-briefing .extractor-terminal-title { grid-column: 1 / -1; margin: 5px 0; font-size: .76rem; -webkit-line-clamp: 2; }
+      #extractor-briefing .extractor-terminal-meta { grid-column: 2; grid-row: 1; align-self: start; max-width: 105px; }
+      .extractor-briefing-list { display: block; }
+      .extractor-briefing-list li + li { border-top: 1px solid var(--x-rule); border-left: 0; }
+      .extractor-briefing-list { display: block; }
+      .extractor-briefing-list li + li { border-top: 1px solid var(--x-rule); border-left: 0; }
+      #extractor-briefing .extractor-briefing-link { min-height: 0 !important; padding: 13px 12px; }
+      .extractor-briefing-list li:first-child { display: block; }
+      .extractor-briefing-list li:first-child .extractor-briefing-link { min-height: 0 !important; padding: 15px 12px; }
+      #extractor-briefing .extractor-briefing-list li:first-child .extractor-briefing-title { font-size: 1rem; }
+      .extractor-briefing-title { margin: 6px 0 8px; font-size: .78rem; }
+      .extractor-briefing-latest { font-size: .78rem; -webkit-line-clamp: 2; }
+      .extractor-briefing-sources { margin-top: 9px; padding-top: 0; }
+      .extractor-discovery-list { display: block; }
+      .extractor-discovery-list li + li { border-top: 1px solid var(--x-rule); border-left: 0; }
+      .extractor-discovery-link { min-height: 0; padding: 12px; }
+      .extractor-development-list { display: block; }
+      .extractor-development-list li { border-right: 0; }
+      #extractor-briefing .extractor-development-link { min-height: 0; padding: 12px; }
+      .extractor-tools { margin: 12px; padding: 12px 10px 10px; }
+      .extractor-submit { min-width: 82px; padding: 0 10px; }
+      .extractor-region-head { min-height: 54px; padding: 12px; }
+      .extractor-region-head p { display: none; }
+      .extractor-region--recent { margin-top: 12px; }
+      #extractor-results .extractor-recent-link { padding: 11px 12px; }
+      .extractor-recent-title { font-size: .82rem; }
+      .extractor-recent-meta { max-width: 105px; overflow: hidden; text-overflow: ellipsis; }
+      .extractor-region--trending { padding-bottom: 10px; }
+      .extractor-package { margin: 14px 10px 0; }
+      .extractor-connection-era { margin: 18px 10px 0; }
+      .extractor-package-head { min-height: 50px; padding: 11px 12px; }
+      .extractor-package .extractor-topic-head { min-height: 42px; padding: 9px 12px; }
+      .extractor-region--trending .extractor-topic { margin: 36px 10px 0; }
+      .extractor-region--trending .extractor-region-head + .extractor-topic { margin-top: 14px; }
+      .extractor-region--trending .extractor-item { grid-template-columns: .65rem minmax(0,1fr); gap: 11px; min-height: 52px; padding: 9px 13px; }
+      .extractor-region--trending .extractor-item:first-child { padding-top: 14px; }
+      .extractor-region--trending .extractor-item::after { left: 17px; }
+      .extractor-region--trending .extractor-title { font-size: .8rem; line-height: 1.28; }
+      .extractor-region--archive { margin: 12px 10px; padding: 0; }
+      .extractor-region--archive .extractor-region-head { margin: 0; }
+      .extractor-region--archive .extractor-item { min-height: 58px; padding: 10px 12px; }
+      .extractor-region--archive .extractor-title { font-size: .82rem !important; }
+      .extractor-thread-updated { font-size: .44rem; }
+      .extractor-topic-head { min-height: 45px; padding: 10px 12px; }
+      .extractor-item { grid-template-columns: .65rem minmax(0,1fr); gap: 12px; min-height: 84px; padding: 17px 14px; }
+      .extractor-date { display: none; }
+      .extractor-title { font-size: .92rem; line-height: 1.4; }
+      .extractor-foot { padding: 15px 12px; }
+    }
+    @media(prefers-reduced-motion:reduce) {
+      .extractor-item { transition: none; }
+      .extractor-loader-bar::after { animation-duration: 2.2s; }
+    }
+  </style>
+</head>
+<body>
+  <main class="extractor-page is-loading">
+    <div class="extractor-loader" role="status" aria-label="Loading Extractor"><div class="extractor-loader-bar"></div></div>
+    <div class="extractor-trim" aria-hidden="true"></div>
+    <header class="extractor-hero">
+      <div class="extractor-hero-grid">
+        <div>
+          <h1><span>Extractor</span></h1>
+          <p class="extractor-intro">Imagine someone traveling the world, before the internet, scavenging resources and returning home with everything found while away.</p>
+        </div>
+        <div class="extractor-hero-aside">
+          <svg class="extractor-globe" viewBox="0 0 120 120" role="img" aria-label="A globe marked with an extraction route">
+            <circle cx="60" cy="60" r="49"></circle>
+            <ellipse cx="60" cy="60" rx="22" ry="49"></ellipse>
+            <ellipse cx="60" cy="60" rx="49" ry="19"></ellipse>
+            <path class="route" d="M24 78 C38 58 48 83 63 55 S89 47 96 28"></path>
+            <circle class="point" cx="24" cy="78" r="4"></circle>
+            <circle class="point" cx="63" cy="55" r="4"></circle>
+            <circle class="point" cx="96" cy="28" r="4"></circle>
+          </svg>
+          <div class="extractor-route-meta">
+            <span id="extractor-cargo">Cataloging extracts</span>
+          </div>
+        </div>
+      </div>
+    </header>
+    <form class="extractor-tools" id="extractor-tools" role="search">
+      <input class="extractor-search" id="extractor-search" type="search" aria-label="Search extracted links">
+      <button class="extractor-submit" type="submit">Search</button>
+    </form>
+    <div class="extractor-results" id="extractor-results" aria-live="polite"></div>
+    <p class="extractor-empty" id="extractor-empty">No matching finds.</p>
+  </main>
+  <script>
+    (function () {
+      var endpoint = "https://nashp-reeder-feed.nashp-8f3.workers.dev/";
+      var page = document.querySelector(".extractor-page");
+      var results = document.getElementById("extractor-results");
+      var search = document.getElementById("extractor-search");
+      var tools = document.getElementById("extractor-tools");
+      var cargo = document.getElementById("extractor-cargo");
+      var empty = document.getElementById("extractor-empty");
+      var signals = [];
+      var connectionLabels = new Set();
+      var connectionBriefs = {};
+      var connectionPackages = [];
+      var topicsById = new Map();
+
+      function cleanSource(value) {
+        return String(value || "Web").split(/\s(?:\||—|–|-)\s|:/, 1)[0].trim() || "Web";
+      }
+      function cleanTitle(value) {
+        var protectedWords = new Set(["ABC","AI","BBC","CBS","CEO","CNN","ESPN","GB","GBA","GTA","iOS","iPad","iPhone","KONKR","MCON","MLB","NBA","NCAA","NFL","NHL","PS5","TV","UFC","US","VII","VI","WWE","Xbox"]);
+        var smallWords = new Set(["AND","FOR","IN","OF","ON","OR","THE","TO"]);
+        var title = String(value || "Saved find")
+          .replace(/^[\s★☆⭐︎*]+/, "")
+          .replace(/\s+(?:https?:\/\/|www\.)\S.*$/i, "")
+          .replace(/\s+[-–—]\s+[a-z]{1,2}$/i, "")
+          .replace(/\s+\b(?:through|with|from|for|to|of|in|on|at|by)\s+(?:t|th)$/i, "")
+          .replace(/\s*\|\s*/g, " — ")
+          .trim() || "Saved find";
+        return title.replace(/\b[A-Z][A-Z']+\b/g, function (word) {
+          if (protectedWords.has(word) || /^[IVXLCDM]+$/.test(word)) return word;
+          if (smallWords.has(word)) return word.toLowerCase();
+          return word.charAt(0) + word.slice(1).toLowerCase();
+        });
+      }
+      function validConnectionSurface(item) {
+        // Broad Apple is a safety-net, never permission to absorb an unrelated
+        // video merely because it arrived in the same refresh.
+        if (item.topic === "Apple") {
+          return /\b(?:apple|iphone|ipad|macbook|macos|imac|vision pro|app store|tim cook|ternus|schiller)\b/i.test(item.title || "");
+        }
+        return true;
+      }
+      function promoteFullyOwnedSuffixTopics(items, topics) {
+        // A bare trailing word is not a useful connection when every saved
+        // result already names the same, more specific phrase. This keeps
+        // "Fire Emblem" intact instead of letting the shorter "Emblem" win.
+        // It is evidence-based rather than editorial: all of the topic's
+        // entries must contain the exact same adjacent two-word phrase.
+        var topicById = new Map((topics || []).map(function (topic) { return [topic.id, topic]; }));
+        var groups = new Map();
+        items.forEach(function (item) {
+          var topic = topicById.get(item.topicId);
+          var label = String(item.topic || "").trim();
+          if (!topic || !topic.auto || !/^[a-z]+$/i.test(label)) return;
+          var key = item.topicId;
+          if (!groups.has(key)) groups.set(key, { label: label, items: [] });
+          groups.get(key).items.push(item);
+        });
+        var replacements = new Map();
+        groups.forEach(function (group, topicId) {
+          if (group.items.length < 3) return;
+          var subject = group.label.toLowerCase();
+          var prefixes = group.items.map(function (item) {
+            var words = String(item.title || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+            var index = words.indexOf(subject);
+            return index > 0 && words[index - 1].length > 2 ? words[index - 1] : "";
+          });
+          if (!prefixes.every(Boolean) || new Set(prefixes).size !== 1) return;
+          var phrase = prefixes[0] + " " + subject;
+          if (!group.items.every(function (item) {
+            return (" " + String(item.title || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() + " ")
+              .includes(" " + phrase + " ");
+          })) return;
+          replacements.set(topicId, {
+            id: "topic-" + phrase.replace(/[^a-z0-9]+/g, "-"),
+            label: phrase.split(" ").map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1); }).join(" ")
+          });
+        });
+        if (!replacements.size) return { items: items, topics: topics };
+        return {
+          items: items.map(function (item) {
+            var replacement = replacements.get(item.topicId);
+            return replacement ? Object.assign({}, item, { topicId: replacement.id, topic: replacement.label }) : item;
+          }),
+          topics: topics.map(function (topic) {
+            var replacement = replacements.get(topic.id);
+            return replacement ? Object.assign({}, topic, replacement) : topic;
+          })
+        };
+      }
+      function promoteRepeatedNamedPhrases(items, topics) {
+        // When three or more saved titles repeat the same meaningful named
+        // phrase, that phrase is a stronger reader-facing connection than a
+        // generic fallback such as "Gaming Roundup" or "Nintendo". This is
+        // deliberately derived from the current saves, never a hand-written
+        // editorial mapping.
+        var topicById = new Map((topics || []).map(function (topic) { return [topic.id, topic]; }));
+        var ignored = new Set(["the", "and", "for", "from", "with", "this", "that", "your", "have", "will", "into", "about", "after", "over", "more", "than"]);
+        var mentions = new Map();
+        var phrasesFor = function (title) {
+          var words = String(title || "").toLowerCase().match(/[a-z]+/g) || [];
+          var phrases = [];
+          for (var index = 0; index < words.length - 1; index += 1) {
+            if (words[index].length < 3 || words[index + 1].length < 3 || ignored.has(words[index])) continue;
+            phrases.push(words[index] + " " + words[index + 1]);
+          }
+          return phrases;
+        };
+        items.forEach(function (item, index) {
+          var topic = topicById.get(item.topicId);
+          if (!topic || !topic.auto) return;
+          new Set(phrasesFor(item.title)).forEach(function (phrase) {
+            if (!mentions.has(phrase)) mentions.set(phrase, new Set());
+            mentions.get(phrase).add(index);
+          });
+        });
+        var supported = new Map(Array.from(mentions).filter(function (entry) { return entry[1].size >= 3; }));
+        if (!supported.size) return { items: items, topics: topics };
+        var generated = new Map();
+        var normalizedItems = items.map(function (item) {
+          var topic = topicById.get(item.topicId);
+          if (!topic || !topic.auto) return item;
+          var choice = phrasesFor(item.title)
+            .filter(function (phrase) { return supported.has(phrase); })
+            .sort(function (left, right) { return supported.get(right).size - supported.get(left).size; })[0];
+          if (!choice || String(topic.label || item.topic || "").toLowerCase().includes(choice)) return item;
+          var label = choice.split(" ").map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1); }).join(" ");
+          var replacement = { id: "topic-" + choice.replace(/\s+/g, "-"), label: label, auto: true };
+          generated.set(replacement.id, replacement);
+          return Object.assign({}, item, { topicId: replacement.id, topic: replacement.label });
+        });
+        if (!generated.size) return { items: items, topics: topics };
+        return { items: normalizedItems, topics: topics.concat(Array.from(generated.values())) };
+      }
+      function consolidateAppleSurface(items) {
+        var topics = Array.from(new Set(items.map(function (item) { return String(item.topic || ""); })));
+        var literalChildren = topics.filter(function (label) {
+          return !/^apple\b/i.test(label) && label.trim().split(/\s+/).length >= 2;
+        });
+        var hasPhrase = function (title, label) {
+          return (" " + String(title || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() + " ")
+            .includes(" " + String(label || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() + " ");
+        };
+        return items.map(function (item) {
+          if (!/^apple\b/i.test(item.topic || "")) return item;
+          var target = literalChildren.filter(function (label) { return hasPhrase(item.title, label); })
+            .sort(function (left, right) { return right.length - left.length; })[0];
+          // A named child owns only its Apple-prefixed variants. Do not flatten
+          // hardware and event coverage into one huge Apple bucket.
+          if (target) return Object.assign({}, item, { topic: target, topicId: item.topicId });
+          if (/^apple$/i.test(item.topic || "")) {
+            if (/\b(event|launch|announce|announcement|release|releases|product roadmap|expect)\b/i.test(item.title || "")) {
+              return Object.assign({}, item, { topic: "Apple Events & Products" });
+            }
+            if (/\b(iphone|ipad|macbook|mac mini|macos|imac|vision pro|display|hardware)\b/i.test(item.title || "")) {
+              return Object.assign({}, item, { topic: "Apple Hardware" });
+            }
+          }
+          return item;
+        });
+      }
+      function displayDate(value) {
+        var date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "";
+        return new Intl.DateTimeFormat("en-US", {month:"short",day:"numeric",year:"numeric",timeZone:"America/Chicago"}).format(date);
+      }
+      function domain(value) {
+        try { return new URL(value).hostname.replace(/^www\./, ""); } catch (_) { return "web"; }
+      }
+      function topicSlug(value) {
+        return "connection-" + String(value || "thread").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      }
+      function inferConnectionPackages(topics, items) {
+        function packageLabel(value) {
+          return String(value || "").split(/\s+/).map(function (word) {
+            if (word === "iphone") return "iPhone";
+            if (word === "ipad") return "iPad";
+            if (word === "ios") return "iOS";
+            if (word === "ai") return "AI";
+            if (word === "gta") return "GTA";
+            if (word === "nba") return "NBA";
+            return word.charAt(0).toUpperCase() + word.slice(1);
+          }).join(" ");
+        }
+        var roots = new Map();
+        topics.forEach(function (topic) {
+          var words = String(topic.label || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+          if (words[0] === "the") words.shift();
+          for (var length = 1; length <= Math.min(2, words.length); length += 1) {
+            var phrase = words.slice(0, length).join(" ");
+            if (!phrase || phrase === "game" || phrase === "gaming") continue;
+            // A package must have a real parent connection of its own. This
+            // prevents arbitrary shared headline fragments such as "Apple
+            // iPhone", "Apple CEO", or "Grand Theft" from posing as homes.
+            var hasParent = topics.some(function (candidate) {
+              var candidateWords = String(candidate.label || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+              if (candidateWords[0] === "the") candidateWords.shift();
+              return candidateWords.join(" ") === phrase;
+            });
+            if (!hasParent) continue;
+            if (!roots.has(phrase)) roots.set(phrase, new Set());
+            roots.get(phrase).add(topic.id);
+          }
+        });
+        var claimed = new Set();
+        return Array.from(roots.entries()).map(function (entry) {
+          return { phrase: entry[0], topicIds: Array.from(entry[1]) };
+        }).filter(function (entry) { return entry.topicIds.length >= 2; }).sort(function (a, b) {
+          return b.phrase.split(" ").length - a.phrase.split(" ").length || a.phrase.localeCompare(b.phrase);
+        }).reduce(function (packages, entry) {
+          var ids = entry.topicIds.filter(function (id) { return !claimed.has(id); });
+          var count = items.filter(function (item) { return ids.indexOf(item.topicId) !== -1; }).length;
+          if (ids.length < 2 || count < 6) return packages;
+          ids.forEach(function (id) { claimed.add(id); });
+          packages.push({
+            id: "package-" + topicSlug(entry.phrase),
+            label: packageLabel(entry.phrase),
+            topicIds: ids,
+            count: count
+          });
+          return packages;
+        }, []);
+      }
+      function signalTime(item) {
+        var value = new Date(item.date_saved || item.date_published).getTime();
+        return Number.isNaN(value) ? 0 : value;
+      }
+      function publishedTime(item) {
+        var value = new Date(item.date_published || item.date_saved).getTime();
+        return Number.isNaN(value) ? 0 : value;
+      }
+      function dateKey(value) {
+        var date = value instanceof Date ? value : new Date(value);
+        if (Number.isNaN(date.getTime())) return "";
+        var parts = new Intl.DateTimeFormat("en-US", {year:"numeric",month:"2-digit",day:"2-digit",timeZone:"America/Chicago"}).formatToParts(date);
+        var values = {};
+        parts.forEach(function (part) { values[part.type] = part.value; });
+        return values.year + "-" + values.month + "-" + values.day;
+      }
+      function relativeTime(item) {
+        var diff = Math.max(0, Date.now() - signalTime(item));
+        var minutes = Math.floor(diff / 60000);
+        if (minutes < 1) return "now";
+        if (minutes < 60) return minutes + "m ago";
+        var hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + "h ago";
+        var days = Math.floor(hours / 24);
+        if (days < 7) return days + "d ago";
+        return displayDate(item.date_saved || item.date_published);
+      }
+      var echoStopWords = new Set(["a","an","and","are","as","at","be","but","by","for","from","has","have","his","in","into","is","it","its","more","new","now","of","on","or","our","says","than","that","the","their","them","this","to","up","was","were","with"]);
+      function echoTitle(value) {
+        return String(value || "").toLowerCase()
+          .replace(/grand theft auto\s*(?:6|vi)/g, "gta vi")
+          .replace(/gta\s*6/g, "gta vi")
+          .replace(/[^a-z0-9]+/g, " ").trim();
+      }
+      function echoTokens(value) {
+        return new Set(echoTitle(value).split(/\s+/).filter(function (word) {
+          return word.length > 2 && !echoStopWords.has(word);
+        }));
+      }
+      function sameEvent(first, second) {
+        if (echoTitle(first.title) === echoTitle(second.title)) return true;
+        var a = echoTokens(first.title);
+        var b = echoTokens(second.title);
+        var shared = 0;
+        a.forEach(function (word) { if (b.has(word)) shared += 1; });
+        var overlap = shared / Math.max(1, Math.min(a.size, b.size));
+        var jaccard = shared / Math.max(1, a.size + b.size - shared);
+        return shared >= 3 && (overlap >= .62 || jaccard >= .42);
+      }
+      function buildEchoes(items) {
+        var echoes = [];
+        items.forEach(function (item) {
+          var match = echoes.find(function (group) {
+            return group.some(function (member) { return sameEvent(item, member); });
+          });
+          if (match) match.push(item);
+          else echoes.push([item]);
+        });
+        return echoes;
+      }
+      function parentPhrase(label) {
+        var words = echoTitle(label).split(/\s+/).filter(Boolean);
+        return words.length > 1 ? words.slice(0, -1).join(" ") : "";
+      }
+      // The "More …" shelf is intentionally narrower than a normal title
+      // search. A short shared opening such as "No Man's" can describe
+      // unrelated things (for example, "No Man's Land"), so it needs at
+      // least one identifying word before it can pull in a loose extract.
+      function isDistinctiveParentPhrase(phrase) {
+        return String(phrase || "").split(/\s+/).some(function (word) {
+          return word.length >= 5 && !echoStopWords.has(word);
+        });
+      }
+      function titleContainsPhrase(item, phrase) {
+        return (" " + echoTitle(item.title) + " ").includes(" " + phrase + " ");
+      }
+      function connectionCounts() {
+        return signals.slice().sort(function (a, b) { return signalTime(b) - signalTime(a); }).slice(0, 50).reduce(function (counts, item) {
+          var label = item.topic || item.url || item.title;
+          counts[label] = (counts[label] || 0) + 1;
+          return counts;
+        }, {});
+      }
+      function updateFieldReport() {
+        var counts = connectionCounts();
+        var today = dateKey(new Date());
+        var todaysItems = signals.filter(function (item) { return dateKey(item.date_saved || item.date_published) === today; });
+        var activeThreads = Object.keys(counts).filter(function (label) { return counts[label] >= 3; });
+        var uncharted = todaysItems.filter(function (item) {
+          var label = item.topic || item.url || item.title;
+          return (counts[label] || 0) < 3;
+        }).length;
+        cargo.textContent = signals.length + " extracts · " + todaysItems.length + " today · " + activeThreads.length + " threads · " + uncharted + " uncharted";
+      }
+      function renderBriefing() {
+        var newestSignals = signals.slice().sort(function (a, b) {
+          return signalTime(b) - signalTime(a);
+        }).slice(0, 18);
+        terminalList.replaceChildren();
+        newestSignals.forEach(function (item) {
+          var row = document.createElement("li");
+          var link = document.createElement("a");
+          var topic = document.createElement("span");
+          var title = document.createElement("strong");
+          var meta = document.createElement("span");
+          link.className = "extractor-terminal-link";
+          link.href = item.url;
+          link.rel = "noopener";
+          topic.className = "extractor-terminal-topic";
+          topic.textContent = item.topic || cleanSource(item.source);
+          title.className = "extractor-terminal-title";
+          title.textContent = cleanTitle(item.title);
+          meta.className = "extractor-terminal-meta";
+          meta.textContent = cleanSource(item.source) + " · " + relativeTime(item);
+          link.append(topic, title, meta);
+          row.append(link);
+          terminalList.append(row);
+        });
+        var groups = new Map();
+        signals.forEach(function (item) {
+          var label = item.topic || "";
+          if (!connectionLabels.has(label)) return;
+          if (!groups.has(label)) groups.set(label, []);
+          groups.get(label).push(item);
+        });
+        var ranked = Array.from(groups.entries()).filter(function (entry) {
+          return entry[1].length >= 3;
+        }).sort(function (a, b) {
+          var newestA = Math.max.apply(null, a[1].map(signalTime));
+          var newestB = Math.max.apply(null, b[1].map(signalTime));
+          return newestB - newestA || b[1].length - a[1].length || a[0].localeCompare(b[0]);
+        });
+        var picks = ranked.slice(0, 3);
+        var moreDevelopments = ranked.slice(3, 9);
+        briefingList.replaceChildren();
+        picks.forEach(function (entry) {
+          var label = entry[0];
+          var members = entry[1];
+          var item = document.createElement("li");
+          var link = document.createElement("a");
+          var kicker = document.createElement("span");
+          var title = document.createElement("strong");
+          var latest = document.createElement("span");
+          var sources = document.createElement("span");
+          var newest = members.slice().sort(function (a, b) { return signalTime(b) - signalTime(a); })[0];
+          var sourceNames = Array.from(new Set(members.map(function (member) { return cleanSource(member.source); }))).slice(0, 3);
+          link.className = "extractor-briefing-link";
+          link.href = "#" + topicSlug(label);
+          kicker.className = "extractor-briefing-kicker";
+          kicker.textContent = "Developing story";
+          title.className = "extractor-briefing-title";
+          title.textContent = label;
+          latest.className = "extractor-briefing-latest";
+          latest.textContent = cleanTitle(newest.title);
+          sources.className = "extractor-briefing-sources";
+          sources.textContent = sourceNames.join(" · ");
+          link.append(kicker, title, latest, sources);
+          item.append(link);
+          briefingList.append(item);
+        });
+        developmentList.replaceChildren();
+        moreDevelopments.forEach(function (entry) {
+          var label = entry[0];
+          var members = entry[1];
+          var newest = members.slice().sort(function (a, b) { return signalTime(b) - signalTime(a); })[0];
+          var row = document.createElement("li");
+          var link = document.createElement("a");
+          var title = document.createElement("strong");
+          var latest = document.createElement("span");
+          link.className = "extractor-development-link";
+          link.href = "#" + topicSlug(label);
+          title.className = "extractor-development-title";
+          title.textContent = label;
+          latest.className = "extractor-development-latest";
+          latest.textContent = cleanTitle(newest.title);
+          link.append(title, latest);
+          row.append(link);
+          developmentList.append(row);
+        });
+        var recentFinds = signals.filter(function (item) {
+          return !connectionLabels.has(item.topic || "");
+        }).sort(function (a, b) {
+          return signalTime(b) - signalTime(a);
+        }).slice(0, 3);
+        discoveryList.replaceChildren();
+        recentFinds.forEach(function (item) {
+          var row = document.createElement("li");
+          var link = document.createElement("a");
+          link.className = "extractor-discovery-link";
+          link.href = item.url;
+          link.rel = "noopener";
+          link.textContent = cleanTitle(item.title);
+          row.append(link);
+          discoveryList.append(row);
+        });
+        developments.hidden = !moreDevelopments.length;
+        discoveries.hidden = !recentFinds.length;
+        terminal.hidden = !newestSignals.length;
+        briefing.hidden = !newestSignals.length;
+      }
+      function render(list) {
+        results.replaceChildren();
+        var sorted = list.slice().sort(function (a,b) { return signalTime(b)-signalTime(a); });
+        function widget(title, items, id, progressive) {
+          var section=document.createElement("section");
+          section.className="extractor-region extractor-region--trending";
+          if(id) section.id=id;
+          var header=document.createElement("header");
+          header.className="extractor-region-head";
+          var heading=document.createElement("h2"); heading.textContent=title;
+          header.append(heading); section.append(header);
+          var rows=document.createElement("ol"); rows.className="extractor-topic-list";
+          items.forEach(function(item){
+            var row=document.createElement("li"); row.className="extractor-item";
+            var copy=document.createElement("div"); copy.className="extractor-copy";
+            var link=document.createElement("a"); link.className="extractor-title";
+            link.href=item.url; link.rel="noopener"; link.textContent=cleanTitle(item.title);
+            var date=document.createElement("time"); date.className="extractor-date";
+            date.textContent=displayDate(item.date_saved||item.date_published);
+            copy.append(link); row.append(copy,date); rows.append(row);
+          });
+          section.append(rows);
+          if(progressive && items.length>5){
+            var offset=0;
+            var more=document.createElement("button"); more.type="button"; more.className="extractor-more";
+            var previous=document.createElement("button"); previous.type="button"; previous.className="extractor-more";
+            previous.textContent="Previous 5";
+            function updateRows(){
+              Array.from(rows.children).forEach(function(row,index){row.hidden=index<offset||index>=offset+5;});
+              more.hidden=offset+5>=items.length;
+              more.textContent="Next "+Math.min(5,items.length-offset-5);
+              previous.hidden=offset===0;
+            }
+            more.addEventListener("click",function(){offset=Math.min(offset+5,Math.floor((items.length-1)/5)*5);updateRows();});
+            previous.addEventListener("click",function(){offset=Math.max(0,offset-5);updateRows();});
+            var navigation=document.createElement("nav"); navigation.className="extractor-pagination";
+            navigation.setAttribute("aria-label","Latest links pagination");
+            navigation.append(previous,more); section.append(navigation); updateRows();
+          }
+          results.append(section);
+        }
+        if(sorted.length) widget("Latest 50 Links",sorted.slice(0,50),null,true);
+        var groups=new Map();
+        sorted.forEach(function(item){
+          if(!connectionLabels.has(item.topic))return;
+          if(!groups.has(item.topic))groups.set(item.topic,[]);
+          groups.get(item.topic).push(item);
+        });
+        // Map order follows newest save; archive counts establish real topics.
+        var counts={}; signals.forEach(function(item){counts[item.topic]=(counts[item.topic]||0)+1;});
+        Array.from(groups.entries()).filter(function(group){return counts[group[0]]>=3;}).slice(0,5)
+          .forEach(function(group){widget(group[0],group[1].slice(0,3),topicSlug(group[0]));});
+        empty.classList.toggle("is-visible",!sorted.length);
+      }
+      function filter() {
+        var query = search.value.trim().toLowerCase();
+        render(signals.filter(function (item) {
+          var matchesQuery = !query || [item.title,item.source,domain(item.url)].join(" ").toLowerCase().includes(query);
+          return matchesQuery;
+        }));
+      }
+      tools.addEventListener("submit", function (event) {
+        event.preventDefault();
+        filter();
+      });
+      search.addEventListener("input", function () {
+        if (!search.value.trim()) filter();
+      });
+      function applyPayload(payload) {
+          var validItems = (Array.isArray(payload.items) ? payload.items : []).map(function (item) {
+            return validConnectionSurface(item) ? item : Object.assign({}, item, { topic: "Individual Find", topicId: "" });
+          });
+          var normalizedTopics = promoteFullyOwnedSuffixTopics(validItems, Array.isArray(payload.topics) ? payload.topics : []);
+          normalizedTopics = promoteRepeatedNamedPhrases(normalizedTopics.items, normalizedTopics.topics);
+          signals = consolidateAppleSurface(normalizedTopics.items);
+          var topics = normalizedTopics.topics;
+          connectionLabels = new Set(topics.filter(function (topic) { return topic.auto; }).map(function (topic) { return topic.label; }));
+          connectionBriefs = payload.briefs && typeof payload.briefs === "object" ? payload.briefs : {};
+          topicsById = new Map(topics.map(function (topic) { return [topic.id, topic.label]; }));
+          // Connections are intentionally a single, latest-first list. The
+          // package experiment hid too much context and created misleading
+          // partial containers, so the raw earned threads remain the surface.
+          connectionPackages = [];
+          filter();
+          updateFieldReport();
+          page.classList.remove("is-loading");
+      }
+      fetch(endpoint + "?fresh=" + Date.now(), {cache:"no-store",headers:{Accept:"application/json"},mode:"cors"})
+        .then(function (response) { if (!response.ok) throw new Error("Feed unavailable"); return response.json(); })
+        .then(function (payload) {
+          applyPayload(payload);
+          window.setTimeout(function () {
+            fetch(endpoint + "?sync=1&fresh=" + Date.now(), {cache:"no-store",headers:{Accept:"application/json"},mode:"cors"})
+              .then(function (response) { if (!response.ok) throw new Error("Refresh unavailable"); return response.json(); })
+              .then(applyPayload)
+              .catch(function () {});
+          }, 1200);
+        })
+        .catch(function () {
+          empty.textContent = "The archive could not reach the live feed. Try again shortly.";
+          empty.classList.add("is-visible");
+          page.classList.remove("is-loading");
+        });
+    })();
+  </script>
+</body>
+</html>
