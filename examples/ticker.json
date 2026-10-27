@@ -1,0 +1,29 @@
+{
+  "connections": [
+    {
+      "label": "Photography",
+      "count": 3,
+      "newest": 5
+    },
+    {
+      "label": "Writing",
+      "count": 3,
+      "newest": 4
+    },
+    {
+      "label": "Games",
+      "count": 3,
+      "newest": 3
+    },
+    {
+      "label": "Music",
+      "count": 3,
+      "newest": 2
+    },
+    {
+      "label": "Tools",
+      "count": 3,
+      "newest": 1
+    }
+  ]
+}
