@@ -1,0 +1,6 @@
+REEDER_FEED_URL=https://example.com/your-private-feed.json
+# Optional integrations: configure only those you use. Never commit live values.
+# YOUTUBE_CLIENT_ID=
+# YOUTUBE_CLIENT_SECRET=
+# YOUTUBE_REDIRECT_URI=
+# STRIPE_WEBHOOK_SECRET=
